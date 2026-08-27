@@ -96,7 +96,7 @@ export const Navbar = () => {
             <span className="hidden sm:inline text-[#ffdbc9]">Fresh Daily Baking • Sangola, Maharashtra</span>
           </div>
           <div className="flex items-center gap-4 text-[11px] text-[#ffdbc9]">
-            <span>📞 +91 98765 43210</span>
+            <span>📞 +91 12345 67890</span>
             {isAdmin && (
               <span className="bg-white/20 text-white px-2 py-0.5 rounded font-bold">
                 ADMIN CONSOLE

@@ -107,11 +107,9 @@ export const DigitalBillPage = () => {
               <p className="text-xs font-bold text-[#855300] uppercase tracking-wider">
                 Authorized Chakote Brand Dealer
               </p>
-              <p className="text-xs text-gray-600">
-                Main Market Road, Near ST Stand, Sangola, Solapur - 413307
-              </p>
-              <p className="text-xs text-gray-600">
-                Phone: +91 98765 43210 • Email: contact@krishnaarjunbakers.com
+              <p className="text-xs text-gray-500 font-medium">
+                Main Market Road, Near ST Stand, Sangola 413307<br />
+                Phone: +91 12345 67890 • Email: krishnaarjunbakers@gmail.com
               </p>
             </div>
 

@@ -4,455 +4,397 @@ import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import api from '../../services/api';
-import DoughProgressBar from '../../components/common/DoughProgressBar';
-import Badge from '../../components/common/Badge';
 import {
   ShoppingBag,
-  Sparkles,
-  Award,
-  Clock,
+  Package,
+  Calendar,
+  MessageSquare,
+  FileText,
+  ShieldCheck,
   MapPin,
   Phone,
-  Flame,
+  Mail,
+  User,
+  UserPlus,
   ArrowRight,
-  CheckCircle2,
-  Calendar,
-  Heart,
-  ChevronRight,
-  ShieldCheck,
-  Plus,
-  MessageSquare,
-  Truck,
-  Star,
-  Users,
-  Store
+  Sparkles,
+  ChevronRight
 } from 'lucide-react';
 
 export const LandingPage = () => {
   const { user } = useAuth();
-  const { addToCart, totalItemsCount } = useCart();
+  const { addToCart } = useCart();
   const toast = useToast();
   const navigate = useNavigate();
 
-  const [products, setProducts] = useState([]);
-  const [activeOrder, setActiveOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('ALL');
-
-  useEffect(() => {
-    // Load products from Firestore in real-time
-    const unsubscribe = api.subscribeToProducts((prods) => {
-      setProducts(prods || []);
-      setLoading(false);
-    });
-
-    // Check for user's latest active order
-    if (user) {
-      api.getOrders(user.id, false).then((orders) => {
-        const active = (orders || []).find((o) =>
-          ['PENDING', 'ACCEPTED', 'PREPARING', 'READY'].includes(o.status)
-        );
-        if (active) {
-          setActiveOrder(active);
-        }
-      }).catch(() => {});
-    }
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, [user]);
-
-  const handleOrderNow = (product) => {
+  const handleOrderNow = () => {
     if (!user) {
-      toast.info("Please sign in or create an account to order.");
+      toast.info("Please sign in with your account to place an order.");
       navigate("/login?redirect=/home");
-      return;
+    } else {
+      navigate("/home");
     }
-    if (product) {
-      addToCart(product, 1);
-    }
-    navigate("/home");
   };
-
-  const handleAddToCart = (product, e) => {
-    e.stopPropagation();
-    if (product.quantity <= 0 || !product.is_available) {
-      toast.error(`'${product.name}' is currently SOLD OUT.`);
-      return;
-    }
-    addToCart(product, 1);
-  };
-
-  const featuredProducts = products.slice(0, 8);
-  const categories = ['ALL', ...new Set(products.map((p) => p.category))];
-
-  const filteredFeatured = featuredProducts.filter((p) =>
-    selectedCategory === 'ALL' ? true : p.category === selectedCategory
-  );
 
   return (
-    <div className="space-y-16 pb-24 -mt-2">
-      {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#8b4513] via-[#6c2f00] to-[#3a1800] text-white p-8 sm:p-12 md:p-16 shadow-warm-lg">
-        {/* Decorative ambient glowing circles */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#fea619]/25 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#ffc29f]/15 rounded-full blur-2xl pointer-events-none" />
+    <div className="min-h-screen bg-[#1c110b] text-[#fbf7f4] font-sans -mx-4 sm:-mx-6 lg:-mx-8 -mt-4 sm:-mt-6">
+      {/* 1. TOP HEADER / BRAND NAVIGATION BAR */}
+      <header className="bg-[#fffbf6] text-[#2c1810] border-b border-[#e8dcd2] px-6 lg:px-12 py-3.5 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Logo & Brand Identity */}
+          <Link to="/" className="flex items-center gap-3 group">
+            {/* Circular KA Seal Emblem */}
+            <div className="relative w-12 h-12 rounded-full border-2 border-[#b8860b] bg-[#fffbf2] flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform flex-shrink-0">
+              <span className="text-[#8b5a2b] font-serif font-black text-sm tracking-tighter">KA</span>
+              <div className="absolute -bottom-1 bg-[#8b5a2b] text-[7px] text-[#fff] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wider scale-75">
+                ESTD
+              </div>
+            </div>
+            <div>
+              <div className="font-serif font-black text-xl text-[#2c1810] tracking-wide uppercase leading-none">
+                KrishnaArjun
+              </div>
+              <div className="text-[11px] font-extrabold tracking-[0.25em] text-[#8b5a2b] uppercase leading-tight mt-0.5">
+                BAKERS
+              </div>
+              <div className="text-[8px] font-bold tracking-widest text-[#a07855] uppercase">
+                DILLARS OF CHAKOTE BRAND
+              </div>
+            </div>
+          </Link>
 
-        <div className="relative z-10 max-w-3xl space-y-6">
-          {/* Authentic Dealer Badge */}
-          <div className="inline-flex items-center gap-2 bg-[#fea619]/20 border border-[#fea619]/40 text-[#ffdbc9] px-4 py-1.5 rounded-full text-xs font-bold backdrop-blur-md">
-            <Award className="w-4 h-4 text-[#fea619]" />
-            <span>Authorized Chakote Brand Dealer • Sangola, Maharashtra</span>
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center gap-6 text-xs font-bold text-[#4a2e20]">
+            <Link to="/" className="text-[#8b5a2b] border-b-2 border-[#b8860b] pb-0.5">
+              Home
+            </Link>
+            <Link to="/products" className="hover:text-[#8b5a2b] transition-colors">
+              Products
+            </Link>
+            <button onClick={handleOrderNow} className="hover:text-[#8b5a2b] transition-colors">
+              Order Now
+            </button>
+            <Link to="/bulk-orders" className="hover:text-[#8b5a2b] transition-colors">
+              Bulk Orders
+            </Link>
+            <a href="#about" className="hover:text-[#8b5a2b] transition-colors">
+              About Us
+            </a>
+            <a href="#contact" className="hover:text-[#8b5a2b] transition-colors">
+              Contact
+            </a>
+          </nav>
+
+          {/* User Auth CTAs */}
+          <div className="flex items-center gap-3">
+            {user ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  to={user.role === 'ADMIN' ? '/admin' : '/home'}
+                  className="px-4 py-2 rounded-xl bg-[#2c1810] text-[#fbf7f4] text-xs font-bold shadow hover:bg-[#43261a] transition-all"
+                >
+                  {user.role === 'ADMIN' ? 'Admin Console' : `Storefront (${user.name?.split(' ')[0] || 'User'})`}
+                </Link>
+              </div>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#d6c2b4] bg-[#fcf8f4] hover:bg-[#f3ece4] text-[#2c1810] text-xs font-bold transition-all"
+                >
+                  <User className="w-3.5 h-3.5 text-[#8b5a2b]" />
+                  <span>Login</span>
+                </Link>
+
+                <Link
+                  to="/register"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2c1810] hover:bg-[#43261a] text-[#fff] text-xs font-bold shadow transition-all"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Register</span>
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* 2. HERO BANNER SECTION (Warm Artisan Bakery Showcase) */}
+      <section className="relative overflow-hidden min-h-[580px] lg:min-h-[640px] flex items-center bg-[#23150d]">
+        {/* Rich Bakery Hero Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-75"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=1800&auto=format&fit=crop')`,
+          }}
+        />
+
+        {/* Cinematic Gradient Vignette Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#170c06] via-[#1f1109]/90 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#170c06] via-transparent to-black/30" />
+
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-12 py-16 w-full flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10">
+          {/* Left Text & Call-To-Actions */}
+          <div className="max-w-xl space-y-6 z-10">
+            {/* Elegant Script Header */}
+            <div className="font-serif italic text-2xl sm:text-3xl text-[#e8ba6c] font-normal tracking-wide">
+              Welcome to
+            </div>
+
+            <div className="space-y-2">
+              <h1 className="font-serif font-black text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-none">
+                KrishnaArjun <span className="text-[#e5a823]">Bakers</span>
+              </h1>
+
+              {/* Decorative Waveform Divider */}
+              <div className="flex items-center gap-2 pt-1 text-[#b8860b]">
+                <div className="h-[2px] w-12 bg-[#b8860b]" />
+                <svg className="w-16 h-3 text-[#e5a823]" viewBox="0 0 60 12" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M0 6h15l4-5 5 10 4-8 4 6 4-3h24" />
+                </svg>
+                <div className="h-[2px] w-24 bg-[#b8860b]" />
+              </div>
+            </div>
+
+            <h2 className="text-base sm:text-lg font-bold text-[#f5e2cc] tracking-wide">
+              Dealers of Chakote Brand from Sangola City
+            </h2>
+
+            <p className="text-xs sm:text-sm text-[#d4bca7] leading-relaxed font-normal max-w-lg">
+              Enjoy the freshness and taste of our wide range of bakery products made with love and the finest ingredients.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-4 pt-3">
+              <button
+                onClick={handleOrderNow}
+                className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-[#2b170e] hover:bg-[#3f2315] text-[#fbf7f4] font-bold text-xs border border-[#b8860b] shadow-lg shadow-black/40 hover:scale-102 active:scale-98 transition-all"
+              >
+                <ShoppingBag className="w-4 h-4 text-[#e5a823]" />
+                <span>Order Now</span>
+              </button>
+
+              <Link
+                to="/products"
+                className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-black/40 hover:bg-black/60 text-[#fbf7f4] font-bold text-xs border border-[#d6c2b4]/40 backdrop-blur-sm transition-all"
+              >
+                <Package className="w-4 h-4 text-[#e5a823]" />
+                <span>View Products</span>
+              </Link>
+            </div>
           </div>
 
-          <h1 className="font-headline font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight text-white tracking-tight">
-            Artisanal Warmth & Morning Oven Bakes
-          </h1>
+          {/* Right Scalloped Stamp Badge */}
+          <div className="hidden lg:flex flex-col items-center justify-center">
+            <div className="w-44 h-44 rounded-full border-4 border-dashed border-[#b8860b] bg-[#fffdf9]/95 text-[#2c1810] p-4 flex flex-col items-center justify-center text-center shadow-2xl backdrop-blur-md transform hover:rotate-6 transition-transform">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#8b5a2b]">
+                DILLARS OF
+              </span>
+              <div className="my-1 border-t border-b border-[#b8860b] py-1 w-full">
+                <span className="font-serif font-black text-xl text-[#2c1810] tracking-wider block">
+                  CHAKOTE
+                </span>
+                <span className="text-[11px] font-extrabold tracking-[0.2em] text-[#8b5a2b] block uppercase">
+                  BRAND
+                </span>
+              </div>
+              <span className="text-[8px] font-bold text-[#8b5a2b] tracking-wider uppercase mt-0.5">
+                ★ SANGOLA ★
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          <p className="text-sm sm:text-base text-[#ffdbc9] leading-relaxed max-w-2xl font-medium">
-            From hot, fluffy daily Ladi Pav at 06:00 AM to nutritious Chakote Milk Bread, crispy cardamom rusks, and custom celebratory cakes. Freshly baked daily in Sangola with pure ingredients.
-          </p>
+      {/* 3. FIVE FEATURE HIGHLIGHT CARDS (Beige Container) */}
+      <section className="relative z-20 -mt-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+        <div className="bg-[#f5eee6] text-[#2c1810] rounded-3xl p-6 sm:p-8 shadow-xl border border-[#e4d5c7] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-0 lg:divide-x divide-[#e2d2c2]">
+          {/* Card 1: Wide Range */}
+          <div className="flex flex-col items-center text-center px-4 space-y-3 group">
+            <div className="w-14 h-14 rounded-full bg-[#2c1810] text-[#e5a823] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+              <ShoppingBag className="w-6 h-6" />
+            </div>
+            <h3 className="font-serif font-extrabold text-sm sm:text-base text-[#2c1810]">
+              Wide Range
+            </h3>
+            <p className="text-[11px] text-[#6b4c3b] leading-relaxed font-medium">
+              Explore a variety of fresh breads, biscuits, cakes, buns and more.
+            </p>
+          </div>
 
-          {/* Primary Action Buttons */}
-          <div className="flex flex-wrap items-center gap-3 pt-3">
-            <button
-              onClick={() => handleOrderNow()}
-              className="px-7 py-3.5 rounded-2xl bg-[#fea619] hover:bg-[#ffb95f] text-[#6c2f00] font-headline font-extrabold text-sm shadow-warm-md hover:shadow-warm-lg transition-all flex items-center gap-2 active:scale-98"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>{user ? 'Order Today’s Fresh Batch' : 'Sign In & Order Fresh Bakes'}</span>
-            </button>
+          {/* Card 2: Daily & Future Orders */}
+          <div className="flex flex-col items-center text-center px-4 space-y-3 group">
+            <div className="w-14 h-14 rounded-full bg-[#2c1810] text-[#e5a823] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+              <Calendar className="w-6 h-6" />
+            </div>
+            <h3 className="font-serif font-extrabold text-sm sm:text-base text-[#2c1810]">
+              Daily & Future Orders
+            </h3>
+            <p className="text-[11px] text-[#6b4c3b] leading-relaxed font-medium">
+              Place orders for today or schedule for tomorrow or any special day.
+            </p>
+          </div>
 
+          {/* Card 3: Chat With Us */}
+          <div className="flex flex-col items-center text-center px-4 space-y-3 group">
+            <div className="w-14 h-14 rounded-full bg-[#2c1810] text-[#e5a823] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+              <MessageSquare className="w-6 h-6" />
+            </div>
+            <h3 className="font-serif font-extrabold text-sm sm:text-base text-[#2c1810]">
+              Chat With Us
+            </h3>
+            <p className="text-[11px] text-[#6b4c3b] leading-relaxed font-medium">
+              Connect directly with us for any queries or custom requirements.
+            </p>
+          </div>
+
+          {/* Card 4: Digital Bill */}
+          <div className="flex flex-col items-center text-center px-4 space-y-3 group">
+            <div className="w-14 h-14 rounded-full bg-[#2c1810] text-[#e5a823] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+              <FileText className="w-6 h-6" />
+            </div>
+            <h3 className="font-serif font-extrabold text-sm sm:text-base text-[#2c1810]">
+              Digital Bill
+            </h3>
+            <p className="text-[11px] text-[#6b4c3b] leading-relaxed font-medium">
+              Get your order bills instantly and keep track of your purchases.
+            </p>
+          </div>
+
+          {/* Card 5: Secure & Reliable */}
+          <div className="flex flex-col items-center text-center px-4 space-y-3 group">
+            <div className="w-14 h-14 rounded-full bg-[#2c1810] text-[#e5a823] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <h3 className="font-serif font-extrabold text-sm sm:text-base text-[#2c1810]">
+              Secure & Reliable
+            </h3>
+            <p className="text-[11px] text-[#6b4c3b] leading-relaxed font-medium">
+              Your data and orders are safe with us. We value your trust.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. ABOUT & SPECIALTIES SHORTCUT */}
+      <section id="about" className="max-w-7xl mx-auto px-6 lg:px-12 py-16">
+        <div className="bg-[#241710] border border-[#3d271c] rounded-3xl p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="space-y-3 max-w-2xl">
+            <span className="text-[11px] font-extrabold text-[#e5a823] uppercase tracking-widest">
+              Authorized Chakote Dealer • Sangola Hub
+            </span>
+            <h2 className="font-serif font-extrabold text-2xl sm:text-3xl text-white">
+              Authentic Chakote Bakery Products & Daily Fresh Bakes
+            </h2>
+            <p className="text-xs sm:text-sm text-[#d4bca7] leading-relaxed">
+              We provide Sangola and nearby areas with genuine Chakote Milk Bread, Cardamom Toast, Khari, Cream Rolls, Sponge Cakes, and daily hot Ladi Pav baked fresh at 06:00 AM every morning.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
             <Link
               to="/products"
-              className="px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-headline font-bold text-sm border border-white/20 backdrop-blur-md transition-all flex items-center gap-2"
+              className="px-6 py-3.5 rounded-xl bg-[#e5a823] hover:bg-[#f0b533] text-[#2c1810] font-bold text-xs shadow transition-all whitespace-nowrap"
             >
-              <span>Explore Bakery Catalog</span>
-              <ChevronRight className="w-4 h-4" />
+              Browse Full Catalog
             </Link>
-
             <Link
               to="/bulk-orders"
-              className="px-5 py-3.5 rounded-2xl bg-white/5 hover:bg-white/15 text-[#ffdbc9] font-headline font-semibold text-xs border border-white/15 backdrop-blur-md transition-all flex items-center gap-1.5"
+              className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-all whitespace-nowrap"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#fea619]" />
-              <span>Festival / Bulk Orders</span>
+              Festival Catering
             </Link>
           </div>
+        </div>
+      </section>
 
-          {/* Key Metrics Banner */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-white/15 text-xs">
-            <div>
-              <span className="font-headline font-extrabold text-xl sm:text-2xl text-white block">06:00 AM</span>
-              <span className="text-[#ffdbc9] text-[11px]">Daily Fresh Oven Batch</span>
-            </div>
-            <div>
-              <span className="font-headline font-extrabold text-xl sm:text-2xl text-[#fea619] block">100%</span>
-              <span className="text-[#ffdbc9] text-[11px]">Pure Ingredients</span>
-            </div>
-            <div>
-              <span className="font-headline font-extrabold text-xl sm:text-2xl text-white block">Sangola</span>
-              <span className="text-[#ffdbc9] text-[11px]">Chakote Dealer Hub</span>
+      {/* 5. FOOTER BANNER (Dark Brown Aesthetic with Updated Contact) */}
+      <footer id="contact" className="bg-[#180e08] border-t border-[#311b11] text-[#e0cfc3] py-10 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-xs">
+          {/* Location */}
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#2a1910] text-[#e5a823] flex items-center justify-center flex-shrink-0 mt-0.5">
+              <MapPin className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-headline font-extrabold text-xl sm:text-2xl text-[#fea619] block">Instant</span>
-              <span className="text-[#ffdbc9] text-[11px]">Live Oven Tracking</span>
+              <h4 className="font-serif font-bold text-sm text-white">
+                Sangola City, Maharashtra
+              </h4>
+              <p className="text-[#a89080] text-[11px] mt-0.5">
+                Proud dealers of Chakote Brand
+              </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* 2. ACTIVE ORDER QUICK-TRACKER BANNER (If customer has an ongoing order) */}
-      {activeOrder && (
-        <section className="bg-white rounded-3xl p-6 border-2 border-[#fea619] shadow-warm-md space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#f0eded] pb-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#fea619] animate-ping" />
-              <h3 className="font-headline font-bold text-base text-[#1b1c1c]">
-                Live Active Order in Kitchen: #{activeOrder.order_number}
-              </h3>
-              <Badge variant="brand" size="sm">
-                {activeOrder.status}
-              </Badge>
-            </div>
-            <Link
-              to={`/orders/${activeOrder.id}`}
-              className="text-xs font-bold text-[#8b4513] hover:text-[#6c2f00] flex items-center gap-1 self-start sm:self-auto"
-            >
-              <span>View Live Dough Progress & Modify</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-          <DoughProgressBar status={activeOrder.status} />
-        </section>
-      )}
-
-      {/* 3. FEATURED PRODUCTS & DIRECT ADD-TO-CART (Connected to Firestore) */}
-      <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#f0eded] pb-4">
-          <div>
-            <span className="text-xs font-extrabold text-[#855300] uppercase tracking-wider">
-              From Our Sangola Bakery Oven
-            </span>
-            <h2 className="font-headline font-extrabold text-2xl md:text-3xl text-[#1b1c1c] mt-1">
-              Fresh Daily Bakery Specialties
-            </h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Select items directly to add to your order or browse the full catalog.
-            </p>
-          </div>
-
-          {/* Category Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                  selectedCategory === cat
-                    ? 'bg-[#8b4513] text-white shadow-warm-sm'
-                    : 'bg-[#f6f3f2] text-gray-700 hover:bg-[#eae7e7]'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Product Cards Grid */}
-        {loading ? (
-          <div className="py-12 text-center text-xs text-gray-500">Loading oven bakes...</div>
-        ) : filteredFeatured.length === 0 ? (
-          <div className="py-12 text-center text-xs text-gray-500">No products found in this category.</div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {filteredFeatured.map((prod) => {
-              const isSoldOut = !prod.is_available || prod.quantity <= 0;
-              const isLowStock = prod.quantity <= (prod.low_stock_threshold || 10) && !isSoldOut;
-
-              return (
-                <div
-                  key={prod.id}
-                  className="bg-white rounded-3xl p-5 border border-[#dac2b6]/40 shadow-warm-sm hover:shadow-warm-md transition-all flex flex-col justify-between group"
-                >
-                  <div className="space-y-3">
-                    <div className="h-44 rounded-2xl overflow-hidden relative bg-[#f6f3f2]">
-                      <img
-                        src={prod.image_url || 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400'}
-                        alt={prod.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-2 left-2 flex flex-col gap-1">
-                        {isSoldOut ? (
-                          <span className="bg-[#dc2626] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                            SOLD OUT
-                          </span>
-                        ) : isLowStock ? (
-                          <span className="bg-[#fea619] text-[#6c2f00] text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                            Only {prod.quantity} Left
-                          </span>
-                        ) : (
-                          <span className="bg-[#15803d] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                            Fresh Batch
-                          </span>
-                        )}
-                      </div>
-                      <span className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-semibold px-2 py-0.5 rounded-lg">
-                        {prod.category}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h4 className="font-headline font-bold text-base text-[#1b1c1c] line-clamp-1">
-                        {prod.name}
-                      </h4>
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">
-                        {prod.description || 'Freshly baked with premium ingredients.'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 mt-4 border-t border-[#f0eded] flex items-center justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] text-gray-400 block font-medium">Price per {prod.unit}</span>
-                      <span className="font-headline font-extrabold text-lg text-[#6c2f00]">
-                        ₹{Number(prod.price).toFixed(2)}
-                      </span>
-                    </div>
-
-                    <button
-                      disabled={isSoldOut}
-                      onClick={(e) => handleAddToCart(prod, e)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-warm-sm active:scale-95 ${
-                        isSoldOut
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-[#8b4513] hover:bg-[#6c2f00] text-white'
-                      }`}
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>{isSoldOut ? 'Sold Out' : '+ Add'}</span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="text-center pt-2">
-          <Link
-            to="/products"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border border-[#dac2b6] text-[#6c2f00] font-headline font-bold text-xs shadow-warm-sm hover:bg-[#f6f3f2] transition-all"
-          >
-            <span>View All {products.length} Bakery Products</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </section>
-
-      {/* 4. WHY SANGOLA CHOOSES KRISHNAARJUN BAKERS */}
-      <section className="bg-[#fcf9f8] rounded-3xl p-8 sm:p-12 border border-[#dac2b6]/40 space-y-8">
-        <div className="text-center max-w-xl mx-auto space-y-2">
-          <span className="text-xs font-extrabold text-[#855300] uppercase tracking-wider">
-            Artisanal Standards & Trust
-          </span>
-          <h2 className="font-headline font-extrabold text-2xl md:text-3xl text-[#1b1c1c]">
-            The KrishnaArjun Quality Promise
-          </h2>
-          <p className="text-xs text-gray-500">
-            Serving Sangola with authentic Chakote products and daily oven freshness.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-[#f0eded] shadow-warm-sm space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#fea619]/20 text-[#855300] flex items-center justify-center font-bold text-xl">
-              🍞
-            </div>
-            <h4 className="font-headline font-bold text-base text-[#1b1c1c]">Never Old Stock</h4>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Every loaf of bread, tray of pav, and sweet roll is baked fresh daily for morning delivery and counter collection.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl border border-[#f0eded] shadow-warm-sm space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#fea619]/20 text-[#855300] flex items-center justify-center font-bold text-xl">
-              🤝
-            </div>
-            <h4 className="font-headline font-bold text-base text-[#1b1c1c]">Direct Chakote Dealer</h4>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Official dealership ensuring genuine Chakote Milk Bread, Toast, Cream Rolls, and Biscuits with authentic recipe standards.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl border border-[#f0eded] shadow-warm-sm space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#fea619]/20 text-[#855300] flex items-center justify-center font-bold text-xl">
-              📱
-            </div>
-            <h4 className="font-headline font-bold text-base text-[#1b1c1c]">Advance & Bulk Booking</h4>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Order today for tomorrow morning or book large catering batches for weddings, poojas, and Ganesh Chaturthi.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. FESTIVAL & BULK ORDERS PROMO BANNER */}
-      <section className="rounded-3xl bg-gradient-to-r from-[#fea619] via-[#f59e0b] to-[#8b4513] text-[#1b1c1c] p-8 sm:p-10 shadow-warm-md flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="space-y-2 max-w-xl">
-          <span className="text-xs font-extrabold uppercase bg-white/30 text-[#6c2f00] px-3 py-1 rounded-full">
-            Special Event Catering
-          </span>
-          <h3 className="font-headline font-extrabold text-2xl sm:text-3xl text-white">
-            Need Bulk Pav, Bread, or Faral in Sangola?
-          </h3>
-          <p className="text-xs sm:text-sm text-white/90">
-            Submit your bulk event requirements. We allocate dedicated early morning oven capacities with special dealer pricing.
-          </p>
-        </div>
-
-        <Link
-          to="/bulk-orders"
-          className="px-6 py-3.5 rounded-2xl bg-white text-[#6c2f00] font-headline font-extrabold text-xs sm:text-sm shadow-warm-md hover:bg-[#fffbf5] transition-all whitespace-nowrap active:scale-98"
-        >
-          Book Festival / Bulk Order
-        </Link>
-      </section>
-
-      {/* 6. LIVE REAL-TIME CHAT & HELP DESK BANNER */}
-      <section className="bg-white rounded-3xl p-8 border border-[#dac2b6]/40 shadow-warm-sm flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-[#8b4513] text-[#ffc29f] flex items-center justify-center font-bold text-2xl shadow-warm-sm flex-shrink-0">
-            💬
-          </div>
-          <div>
-            <h4 className="font-headline font-bold text-base text-[#1b1c1c]">
-              Need Custom Cake Designs or Immediate Inquiry?
-            </h4>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Chat directly with KrishnaArjun Baker desk in real time.
-            </p>
-          </div>
-        </div>
-
-        <Link
-          to={user ? "/chat" : "/login?redirect=/chat"}
-          className="px-5 py-2.5 rounded-xl bg-[#8b4513] hover:bg-[#6c2f00] text-white text-xs font-bold shadow-warm-sm transition-all whitespace-nowrap flex items-center gap-2"
-        >
-          <MessageSquare className="w-4 h-4" />
-          <span>Chat with Baker</span>
-        </Link>
-      </section>
-
-      {/* 7. LOCATION, TIMINGS & OUTLET CONTACT */}
-      <section className="bg-white rounded-3xl p-8 border border-[#dac2b6]/40 shadow-warm-sm grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-        <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 text-xs font-bold text-[#855300]">
-            <MapPin className="w-4 h-4 text-[#fea619]" />
-            <span>Sangola, Solapur District, Maharashtra</span>
-          </div>
-          <h3 className="font-headline font-extrabold text-2xl text-[#1b1c1c]">
-            Visit KrishnaArjun Bakers & Outlet
-          </h3>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Main Market Road, Near ST Stand, Sangola, Solapur District, Maharashtra 413307
-          </p>
-
-          <div className="flex flex-wrap items-center gap-3 pt-2 text-xs font-bold text-gray-700">
-            <span className="flex items-center gap-1.5 bg-[#fcf9f8] px-3 py-2 rounded-xl border border-[#f0eded]">
-              <Clock className="w-4 h-4 text-[#8b4513]" />
-              06:00 AM – 10:00 PM Daily
-            </span>
-            <a
-              href="tel:9876543210"
-              className="flex items-center gap-1.5 bg-[#fcf9f8] hover:bg-[#eae7e7] px-3 py-2 rounded-xl border border-[#f0eded] text-[#8b4513]"
-            >
+          {/* Contact Phone & Hours */}
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#2a1910] text-[#e5a823] flex items-center justify-center flex-shrink-0 mt-0.5">
               <Phone className="w-4 h-4" />
-              +91 98765 43210
-            </a>
+            </div>
+            <div>
+              <a href="tel:+911234567890" className="font-serif font-bold text-sm text-white hover:text-[#e5a823] transition-colors block">
+                +91 12345 67890
+              </a>
+              <p className="text-[#a89080] text-[11px] mt-0.5">
+                Mon - Sun : 7:00 AM - 10:00 PM
+              </p>
+            </div>
+          </div>
+
+          {/* Email Support */}
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#2a1910] text-[#e5a823] flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Mail className="w-4 h-4" />
+            </div>
+            <div>
+              <a href="mailto:krishnaarjunbakers@gmail.com" className="font-serif font-bold text-sm text-white hover:text-[#e5a823] transition-colors block">
+                krishnaarjunbakers@gmail.com
+              </a>
+              <p className="text-[#a89080] text-[11px] mt-0.5">
+                We're here to help you!
+              </p>
+            </div>
+          </div>
+
+          {/* Social Follow Us */}
+          <div className="flex flex-col sm:items-end justify-center gap-2">
+            <span className="font-serif font-bold text-xs text-white">Follow Us</span>
+            <div className="flex items-center gap-3">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noreferrer"
+                className="w-8 h-8 rounded-full bg-[#f5eee6] text-[#2c1810] flex items-center justify-center font-bold text-xs hover:bg-[#e5a823] transition-colors shadow"
+                title="Facebook"
+              >
+                f
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                className="w-8 h-8 rounded-full bg-[#f5eee6] text-[#2c1810] flex items-center justify-center font-bold text-xs hover:bg-[#e5a823] transition-colors shadow"
+                title="Instagram"
+              >
+                📸
+              </a>
+              <a
+                href="https://wa.me/911234567890"
+                target="_blank"
+                rel="noreferrer"
+                className="w-8 h-8 rounded-full bg-[#f5eee6] text-[#2c1810] flex items-center justify-center font-bold text-xs hover:bg-[#e5a823] transition-colors shadow"
+                title="WhatsApp"
+              >
+                💬
+              </a>
+            </div>
           </div>
         </div>
 
-        <div className="bg-[#fffbf5] p-6 rounded-2xl border border-[#fea619]/40 text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-[#8b4513] text-[#ffc29f] flex items-center justify-center font-bold text-2xl mx-auto shadow-warm-sm">
-            🥖
-          </div>
-          <h4 className="font-headline font-bold text-base text-[#1b1c1c]">
-            Ready to order fresh morning bakery batches?
-          </h4>
-          <p className="text-xs text-gray-500">
-            Sign in with email to reserve your bread, pav, and cakes.
-          </p>
-          <button
-            onClick={() => handleOrderNow()}
-            className="w-full py-3 rounded-xl bg-[#8b4513] hover:bg-[#6c2f00] text-white font-headline font-bold text-xs shadow-warm-sm transition-all"
-          >
-            {user ? 'Go to Storefront & Order' : 'Sign In with Email to Order'}
-          </button>
+        <div className="max-w-7xl mx-auto pt-8 mt-8 border-t border-[#29170e] text-center text-[10px] text-[#7d6758]">
+          © {new Date().getFullYear()} KrishnaArjun Bakers, Sangola. All Rights Reserved. Authorized Dealer of Chakote Brand.
         </div>
-      </section>
+      </footer>
     </div>
   );
 };

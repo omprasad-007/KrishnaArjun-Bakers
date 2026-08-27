@@ -273,11 +273,11 @@ export const OrderTracking = () => {
           <p className="text-xs text-gray-500 mt-0.5">Main Market Road, Near ST Stand, Sangola, Solapur</p>
         </div>
         <a
-          href="tel:+919876543210"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#f6f3f2] hover:bg-[#eae7e7] text-xs font-bold text-[#6c2f00] transition-colors"
+          href="tel:+911234567890"
+          className="flex-1 py-3 rounded-2xl bg-white border border-[#dac2b6]/60 hover:bg-[#f6f3f2] text-gray-700 font-headline font-bold text-xs shadow-warm-sm transition-all flex items-center justify-center gap-2"
         >
-          <Phone className="w-4 h-4 text-secondary" />
-          <span>Call Bakery (+91 98765 43210)</span>
+          <Phone className="w-4 h-4 text-[#8b4513]" />
+          <span>Call Bakery (+91 12345 67890)</span>
         </a>
       </div>
 
