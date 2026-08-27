@@ -46,23 +46,44 @@ class FirebaseBakeryService {
   // --- AUTHENTICATION ---
   async login(email, password) {
     const cleanEmail = email.trim();
-    const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
-    const uid = userCredential.user.uid;
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
+      const fbUser = userCredential.user;
+      const uid = fbUser.uid;
 
-    const userDoc = await getDoc(doc(db, 'users', uid));
-    if (userDoc.exists()) {
-      return { id: uid, ...userDoc.data() };
+      // Fast optimistic profile
+      let profile = {
+        id: uid,
+        email: fbUser.email,
+        name: fbUser.displayName || fbUser.email.split('@')[0],
+        phone: '',
+        role: cleanEmail.toLowerCase().includes('admin') ? 'ADMIN' : 'CUSTOMER',
+        village: 'Sangola',
+      };
+
+      // Quick Firestore document fetch (with fast timeout fallback to prevent blocking)
+      try {
+        const userDocPromise = getDoc(doc(db, 'users', uid));
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500));
+        const userDoc = await Promise.race([userDocPromise, timeoutPromise]);
+        if (userDoc.exists()) {
+          profile = { id: uid, ...userDoc.data() };
+        } else {
+          setDoc(doc(db, 'users', uid), profile).catch(() => {});
+        }
+      } catch {
+        // Use fast fallback profile immediately
+      }
+
+      return profile;
+    } catch (err) {
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        throw new Error('Invalid email address or password.');
+      } else if (err.code === 'auth/too-many-requests') {
+        throw new Error('Too many login attempts. Please wait a moment.');
+      }
+      throw err;
     }
-    const fallbackProfile = {
-      id: uid,
-      email: userCredential.user.email,
-      name: userCredential.user.displayName || userCredential.user.email.split('@')[0],
-      phone: '',
-      role: cleanEmail.toLowerCase().includes('admin') ? 'ADMIN' : 'CUSTOMER',
-      village: 'Sangola',
-    };
-    await setDoc(doc(db, 'users', uid), fallbackProfile);
-    return fallbackProfile;
   }
 
   async register(userData) {

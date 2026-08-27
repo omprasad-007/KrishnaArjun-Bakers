@@ -26,40 +26,44 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
-    // Initial bakery catalog seed in Firestore if empty
-    api.seedInitialBakeryData().catch(() => {});
+    // One-time catalog initialization check
+    if (!localStorage.getItem('ka_catalog_initialized')) {
+      api.seedInitialBakeryData()
+        .then(() => localStorage.setItem('ka_catalog_initialized', 'true'))
+        .catch(() => {});
+    }
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        try {
-          const profile = await api.getMe(firebaseUser.uid);
+        // Fast optimistic sync from cache or basic profile
+        const cached = localStorage.getItem('ka_firebase_user');
+        if (!cached) {
+          const basicUser = {
+            id: firebaseUser.uid,
+            name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+            phone: '',
+            email: firebaseUser.email,
+            role: firebaseUser.email?.toLowerCase().includes('admin') ? 'ADMIN' : 'CUSTOMER',
+            village: 'Sangola',
+          };
+          setUser(basicUser);
+          localStorage.setItem('ka_firebase_user', JSON.stringify(basicUser));
+        }
+
+        // Background profile sync
+        api.getMe(firebaseUser.uid).then((profile) => {
           if (profile) {
             setUser(profile);
             localStorage.setItem('ka_firebase_user', JSON.stringify(profile));
-          } else {
-            const basicUser = {
-              id: firebaseUser.uid,
-              name: firebaseUser.displayName || 'Customer',
-              phone: firebaseUser.email?.split('@')[0] || '',
-              email: firebaseUser.email,
-              role: firebaseUser.email?.includes('admin') ? 'ADMIN' : 'CUSTOMER',
-              village: 'Sangola',
-            };
-            setUser(basicUser);
-            localStorage.setItem('ka_firebase_user', JSON.stringify(basicUser));
           }
-        } catch (err) {
-          console.error("Profile sync error:", err);
-        }
+        }).catch(() => {});
       } else {
-        const cached = localStorage.getItem('ka_firebase_user');
-        if (!cached) {
-          setUser(null);
-        }
+        localStorage.removeItem('ka_firebase_user');
+        setUser(null);
       }
       setLoading(false);
     });
@@ -67,35 +71,15 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  const login = async (phoneOrEmail, password) => {
+  const login = async (email, password) => {
     try {
-      // Check admin shortcut
-      if (phoneOrEmail === '9876543210' && password === 'admin123') {
-        const adminProfile = {
-          id: 'admin_sangola_01',
-          name: 'Arjun Shinde (Bakery Owner)',
-          phone: '9876543210',
-          email: 'admin@krishnaarjunbakers.com',
-          role: 'ADMIN',
-          address: 'Main Market Road, Near ST Stand',
-          village: 'Sangola',
-          taluka: 'Sangola',
-          district: 'Solapur',
-          state: 'Maharashtra',
-        };
-        setUser(adminProfile);
-        localStorage.setItem('ka_firebase_user', JSON.stringify(adminProfile));
-        toast.success('Welcome back, Admin Arjun Shinde!');
-        return adminProfile;
-      }
-
-      const profile = await api.login(phoneOrEmail, password);
+      const profile = await api.login(email, password);
       setUser(profile);
       localStorage.setItem('ka_firebase_user', JSON.stringify(profile));
       toast.success(`Welcome back, ${profile.name || 'Customer'}!`);
       return profile;
     } catch (err) {
-      toast.error(err.message || 'Login failed. Please check credentials.');
+      toast.error(err.message || 'Login failed. Please check your credentials.');
       throw err;
     }
   };
@@ -116,19 +100,21 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await api.logout();
-    } catch (e) {}
-    localStorage.removeItem('ka_firebase_user');
-    setUser(null);
-    toast.info('Logged out successfully.');
+      setUser(null);
+      localStorage.removeItem('ka_firebase_user');
+      toast.info('Signed out successfully.');
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const updateProfile = async (updates) => {
+  const updateProfile = async (data) => {
     try {
       if (!user) return;
-      const updated = await api.updateProfile(user.id, updates);
+      const updated = await api.updateProfile(user.id, data);
       setUser(updated);
       localStorage.setItem('ka_firebase_user', JSON.stringify(updated));
-      toast.success('Profile updated successfully!');
+      toast.success('Profile details updated successfully!');
       return updated;
     } catch (err) {
       toast.error(err.message || 'Failed to update profile.');
@@ -136,25 +122,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const isAdmin = user?.role === 'ADMIN';
-  const isCustomer = user?.role === 'CUSTOMER';
+  const value = {
+    user,
+    loading,
+    isAdmin: user?.role === 'ADMIN',
+    isCustomer: user?.role === 'CUSTOMER',
+    login,
+    register,
+    logout,
+    updateProfile,
+  };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        isAdmin,
-        isCustomer,
-        login,
-        register,
-        logout,
-        updateProfile,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
