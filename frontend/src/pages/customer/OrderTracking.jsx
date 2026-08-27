@@ -272,13 +272,13 @@ export const OrderTracking = () => {
           <h4 className="font-headline font-bold text-sm text-[#1b1c1c]">KrishnaArjun Bakers (Sangola)</h4>
           <p className="text-xs text-gray-500 mt-0.5">Main Market Road, Near ST Stand, Sangola, Solapur</p>
         </div>
-        <a
-          href="tel:+911234567890"
-          className="flex-1 py-3 rounded-2xl bg-white border border-[#dac2b6]/60 hover:bg-[#f6f3f2] text-gray-700 font-headline font-bold text-xs shadow-warm-sm transition-all flex items-center justify-center gap-2"
+        <Link
+          to="/chat"
+          className="flex-1 py-3 rounded-2xl bg-[#8b4513] hover:bg-[#6c2f00] text-white font-headline font-bold text-xs shadow-warm-sm transition-all flex items-center justify-center gap-2"
         >
-          <Phone className="w-4 h-4 text-[#8b4513]" />
-          <span>Call Bakery (+91 12345 67890)</span>
-        </a>
+          <MessageSquare className="w-4 h-4 text-[#fea619]" />
+          <span>Chat with Baker Support</span>
+        </Link>
       </div>
 
       {/* Quantity Modification Modal */}

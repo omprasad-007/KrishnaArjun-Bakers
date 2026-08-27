@@ -109,7 +109,7 @@ export const DigitalBillPage = () => {
               </p>
               <p className="text-xs text-gray-500 font-medium">
                 Main Market Road, Near ST Stand, Sangola 413307<br />
-                Phone: +91 12345 67890 • Email: krishnaarjunbakers@gmail.com
+                Email: krishnaarjunbakers@gmail.com
               </p>
             </div>
 

@@ -326,17 +326,17 @@ export const LandingPage = () => {
             </div>
           </div>
 
-          {/* Contact Phone & Hours */}
+          {/* Operating Hours */}
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-full bg-[#2a1910] text-[#e5a823] flex items-center justify-center flex-shrink-0 mt-0.5">
-              <Phone className="w-4 h-4" />
+              <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <a href="tel:+911234567890" className="font-serif font-bold text-sm text-white hover:text-[#e5a823] transition-colors block">
-                +91 12345 67890
-              </a>
+              <h4 className="font-serif font-bold text-sm text-white">
+                07:00 AM - 10:00 PM
+              </h4>
               <p className="text-[#a89080] text-[11px] mt-0.5">
-                Mon - Sun : 7:00 AM - 10:00 PM
+                Open Daily (Mon - Sun)
               </p>
             </div>
           </div>
@@ -378,15 +378,13 @@ export const LandingPage = () => {
               >
                 📸
               </a>
-              <a
-                href="https://wa.me/911234567890"
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                to="/chat"
                 className="w-8 h-8 rounded-full bg-[#f5eee6] text-[#2c1810] flex items-center justify-center font-bold text-xs hover:bg-[#e5a823] transition-colors shadow"
-                title="WhatsApp"
+                title="Live Chat Support"
               >
                 💬
-              </a>
+              </Link>
             </div>
           </div>
         </div>
