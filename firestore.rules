@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'ADMIN' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN'
+      );
+    }
+
+    // 1. Users Collection
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 2. Products Collection (Public Read, Admin Write)
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 3. Orders Collection
+    match /orders/{orderId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if (isOwner(resource.data.userId) && resource.data.status in ['PENDING', 'ACCEPTED']) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 4. Bulk & Festival Orders Collection
+    match /bulkOrders/{bulkOrderId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 5. Inventory Transactions (Strict Admin Only)
+    match /inventoryTransactions/{txId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 6. Digital Bills Collection
+    match /bills/{billId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 7. Notifications Collection
+    match /notifications/{notifId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow update: if isOwner(resource.data.userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['is_read']);
+      allow create, delete: if isAdmin();
+    }
+
+    // 8. Real-Time Chat Conversations
+    match /conversations/{conversationId} {
+      allow read, write: if isAuthenticated();
+
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && (
+          request.auth.uid == resource.data.senderId ||
+          request.auth.uid == resource.data.receiverId ||
+          isAdmin()
+        );
+        allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
+        allow update: if isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['is_read']);
+        allow delete: if isAdmin();
+      }
+    }
+  }
+}
