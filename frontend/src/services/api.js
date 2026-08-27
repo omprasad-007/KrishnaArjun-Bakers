@@ -40,6 +40,10 @@ class ApiBridge {
     return await firebaseService.promoteToAdmin(userId);
   }
 
+  async createAdminAccount(adminData) {
+    return await firebaseService.createAdminAccount(adminData);
+  }
+
   async demoteAdmin(userId) {
     return await firebaseService.demoteAdmin(userId);
   }

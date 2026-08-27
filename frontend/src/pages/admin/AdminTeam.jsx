@@ -14,7 +14,10 @@ import {
   AlertTriangle,
   Mail,
   Phone,
-  RefreshCw
+  Lock,
+  User,
+  RefreshCw,
+  PlusCircle
 } from 'lucide-react';
 
 export const AdminTeam = () => {
@@ -25,8 +28,17 @@ export const AdminTeam = () => {
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [modalTab, setModalTab] = useState('CREATE'); // 'CREATE' | 'PROMOTE'
   const [searchUserQuery, setSearchUserQuery] = useState('');
-  const [selectedUserToPromote, setSelectedUserToPromote] = useState(null);
+  const [creating, setCreating] = useState(false);
+
+  // New Admin Form State
+  const [newAdminForm, setNewAdminForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+  });
 
   useEffect(() => {
     loadTeamData();
@@ -45,6 +57,31 @@ export const AdminTeam = () => {
       toast.error("Failed to load admin team list.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateAdmin = async (e) => {
+    e.preventDefault();
+    if (!newAdminForm.name || !newAdminForm.email || !newAdminForm.password) {
+      toast.error("Please enter Name, Email, and Password.");
+      return;
+    }
+    if (newAdminForm.password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+
+    try {
+      setCreating(true);
+      await api.createAdminAccount(newAdminForm);
+      toast.success(`Successfully created new Bakery Admin: '${newAdminForm.name}'!`);
+      setNewAdminForm({ name: '', email: '', phone: '', password: '' });
+      setAddModalOpen(false);
+      loadTeamData();
+    } catch (err) {
+      toast.error(err.message || "Failed to create new admin account.");
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -100,7 +137,7 @@ export const AdminTeam = () => {
             Bakery Admin Team & Access Control
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Manage bakery managers and authorized administrators who have access to production, inventory, and orders.
+            Only existing administrators can create new admin accounts or grant manager privileges.
           </p>
         </div>
 
@@ -117,7 +154,7 @@ export const AdminTeam = () => {
             className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#8b4513] hover:bg-[#6c2f00] text-white font-headline font-bold text-xs shadow-warm-sm transition-all"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Add / Promote Admin</span>
+            <span>Create New Admin</span>
           </button>
         </div>
       </div>
@@ -126,11 +163,11 @@ export const AdminTeam = () => {
       <div className="bg-[#fffbf5] border border-[#fea619]/60 rounded-3xl p-5 shadow-warm-sm space-y-2">
         <div className="flex items-center gap-2 text-xs font-bold text-[#855300]">
           <ShieldCheck className="w-5 h-5 text-[#fea619]" />
-          <span>Strict Role-Based Isolation Policy</span>
+          <span>Admin-Only Privilege Creation</span>
         </div>
         <p className="text-xs text-gray-600 leading-relaxed">
-          • <strong>Admin Privacy:</strong> Only verified Administrators can view the Admin Console, baking calendars, daily revenue, and the customer directory.<br />
-          • <strong>Customer Privacy:</strong> Customers can only view their own orders, digital bills, and bakery support desk. They can never view other customers or private admin data.
+          • <strong>1st Admin Authorizes 2nd Admin:</strong> New administrators cannot self-register as Admin from the public storefront. They must be created or authorized from inside this panel by an existing Administrator.<br />
+          • <strong>Privacy Isolation:</strong> Administrators can see other administrators in this list. Customers only see bakery support contacts and cannot access other customer data.
         </p>
       </div>
 
@@ -153,7 +190,7 @@ export const AdminTeam = () => {
               <thead>
                 <tr className="bg-[#fcf9f8] border-b border-[#f0eded] text-gray-700 font-headline font-bold">
                   <th className="py-3.5 px-4">Administrator</th>
-                  <th className="py-3.5 px-4">Email Address</th>
+                  <th className="py-3.5 px-4">Email Address (Login ID)</th>
                   <th className="py-3.5 px-4">Phone Number</th>
                   <th className="py-3.5 px-4">Access Level</th>
                   <th className="py-3.5 px-4 text-right">Actions</th>
@@ -218,59 +255,176 @@ export const AdminTeam = () => {
         )}
       </div>
 
-      {/* Add / Promote Admin Modal */}
+      {/* Add / Create Admin Modal */}
       <Modal
         isOpen={addModalOpen}
         onClose={() => setAddModalOpen(false)}
-        title="Promote User to Bakery Administrator"
-        subtitle="Select any registered customer to grant them full Admin Console and production management permissions."
+        title="Admin Team Management"
+        subtitle="Create a new administrator account directly or promote an existing registered customer."
         maxWidth="max-w-lg"
       >
-        <div className="space-y-4 text-xs">
-          <div className="relative">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchUserQuery}
-              onChange={(e) => setSearchUserQuery(e.target.value)}
-              placeholder="Search by name, email, or phone..."
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#dac2b6]/60 bg-[#fcf9f8] focus:bg-white focus:outline-none"
-            />
-          </div>
-
-          <div className="divide-y divide-[#f0eded] max-h-60 overflow-y-auto border border-[#dac2b6]/40 rounded-2xl p-2 bg-[#fcf9f8]">
-            {eligibleUsersToPromote.length === 0 ? (
-              <div className="p-6 text-center text-gray-400">
-                No matching customer accounts found to promote.
-              </div>
-            ) : (
-              eligibleUsersToPromote.map((u) => (
-                <div key={u.id} className="p-3 flex items-center justify-between gap-3 hover:bg-white rounded-xl transition-colors">
-                  <div>
-                    <h5 className="font-headline font-bold text-xs text-[#1b1c1c]">{u.name || 'User'}</h5>
-                    <span className="text-[10px] text-gray-500 block">{u.email || u.phone}</span>
-                  </div>
-
-                  <button
-                    onClick={() => handlePromote(u.id, u.name)}
-                    className="px-3 py-1.5 rounded-xl bg-[#8b4513] hover:bg-[#6c2f00] text-white font-bold text-[11px] shadow-warm-sm transition-all flex items-center gap-1"
-                  >
-                    <UserPlus className="w-3 h-3" />
-                    <span>Make Admin</span>
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="pt-2 text-right">
+        <div className="space-y-5 text-xs">
+          {/* Modal Tab Switcher */}
+          <div className="bg-[#f6f3f2] p-1 rounded-2xl grid grid-cols-2 gap-1 font-bold">
             <button
-              onClick={() => setAddModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-[#f6f3f2]"
+              type="button"
+              onClick={() => setModalTab('CREATE')}
+              className={`py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                modalTab === 'CREATE'
+                  ? 'bg-[#8b4513] text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-[#eae7e7]'
+              }`}
             >
-              Cancel
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>Create New Admin</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setModalTab('PROMOTE')}
+              className={`py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                modalTab === 'PROMOTE'
+                  ? 'bg-[#8b4513] text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-[#eae7e7]'
+              }`}
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Promote Customer</span>
             </button>
           </div>
+
+          {modalTab === 'CREATE' ? (
+            /* Create New Admin Form */
+            <form onSubmit={handleCreateAdmin} className="space-y-3.5">
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Admin Full Name *</label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    required
+                    value={newAdminForm.name}
+                    onChange={(e) => setNewAdminForm({ ...newAdminForm, name: e.target.value })}
+                    placeholder="e.g. Arjun Shinde"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#dac2b6]/60 bg-[#fcf9f8] focus:bg-white focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Admin Email Address (Login ID) *</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    required
+                    value={newAdminForm.email}
+                    onChange={(e) => setNewAdminForm({ ...newAdminForm, email: e.target.value })}
+                    placeholder="e.g. arjun@krishnaarjunbakers.com"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#dac2b6]/60 bg-[#fcf9f8] focus:bg-white focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Phone Number (Optional)</label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="tel"
+                      value={newAdminForm.phone}
+                      onChange={(e) => setNewAdminForm({ ...newAdminForm, phone: e.target.value })}
+                      placeholder="e.g. 9822334455"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#dac2b6]/60 bg-[#fcf9f8] focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Initial Password (6+ chars) *</label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      required
+                      value={newAdminForm.password}
+                      onChange={(e) => setNewAdminForm({ ...newAdminForm, password: e.target.value })}
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#dac2b6]/60 bg-[#fcf9f8] focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-[#f0eded]">
+                <button
+                  type="button"
+                  onClick={() => setAddModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-[#f6f3f2]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="px-5 py-2.5 rounded-xl bg-[#8b4513] hover:bg-[#6c2f00] text-white font-headline font-bold text-xs shadow-warm-sm transition-all flex items-center gap-1.5 active:scale-98 disabled:opacity-50"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>{creating ? 'Creating Admin...' : 'Create Admin Account'}</span>
+                </button>
+              </div>
+            </form>
+          ) : (
+            /* Promote Existing User View */
+            <div className="space-y-3">
+              <div className="relative">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchUserQuery}
+                  onChange={(e) => setSearchUserQuery(e.target.value)}
+                  placeholder="Search customer by name or email..."
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#dac2b6]/60 bg-[#fcf9f8] focus:bg-white focus:outline-none"
+                />
+              </div>
+
+              <div className="divide-y divide-[#f0eded] max-h-56 overflow-y-auto border border-[#dac2b6]/40 rounded-2xl p-2 bg-[#fcf9f8]">
+                {eligibleUsersToPromote.length === 0 ? (
+                  <div className="p-6 text-center text-gray-400">
+                    No matching customer accounts found.
+                  </div>
+                ) : (
+                  eligibleUsersToPromote.map((u) => (
+                    <div key={u.id} className="p-3 flex items-center justify-between gap-3 hover:bg-white rounded-xl transition-colors">
+                      <div>
+                        <h5 className="font-headline font-bold text-xs text-[#1b1c1c]">{u.name || 'User'}</h5>
+                        <span className="text-[10px] text-gray-500 block">{u.email || u.phone}</span>
+                      </div>
+
+                      <button
+                        onClick={() => handlePromote(u.id, u.name)}
+                        className="px-3 py-1.5 rounded-xl bg-[#8b4513] hover:bg-[#6c2f00] text-white font-bold text-[11px] shadow-warm-sm transition-all flex items-center gap-1"
+                      >
+                        <UserPlus className="w-3 h-3" />
+                        <span>Make Admin</span>
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="pt-2 text-right">
+                <button
+                  type="button"
+                  onClick={() => setAddModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-[#f6f3f2]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </Modal>
     </div>

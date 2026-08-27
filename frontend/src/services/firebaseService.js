@@ -124,6 +124,39 @@ class FirebaseBakeryService {
     return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
   }
 
+  async createAdminAccount(adminData) {
+    const email = adminData.email.trim();
+    const password = adminData.password;
+
+    // Use secondary Firebase App instance to prevent logging out the current admin
+    const { initializeApp: initSecondaryApp } = await import('firebase/app');
+    const { getAuth: getSecondaryAuth } = await import('firebase/auth');
+
+    const tempApp = initSecondaryApp(firebaseConfig, `TempAdmin-${Date.now()}`);
+    const tempAuth = getSecondaryAuth(tempApp);
+
+    const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
+    const uid = userCredential.user.uid;
+    await signOut(tempAuth);
+
+    const profile = {
+      id: uid,
+      name: adminData.name,
+      email: email,
+      phone: adminData.phone || '',
+      role: 'ADMIN',
+      address: adminData.address || 'Bakery Outlet, Sangola',
+      village: 'Sangola',
+      taluka: 'Sangola',
+      district: 'Solapur',
+      state: 'Maharashtra',
+      created_at: new Date().toISOString(),
+    };
+
+    await setDoc(doc(db, 'users', uid), profile);
+    return profile;
+  }
+
   async promoteToAdmin(userId) {
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, { role: 'ADMIN', updated_at: new Date().toISOString() });
