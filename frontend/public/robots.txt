@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /home
+Allow: /products
+Allow: /bulk-orders
+
+Disallow: /admin
+Disallow: /admin/*
+
+Sitemap: https://krishnaarjun-bakers.vercel.app/sitemap.xml
