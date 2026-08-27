@@ -109,28 +109,34 @@ export const Navbar = () => {
       {/* Main Nav Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo & Brand */}
+          {/* Logo & Brand Identity (Matching KA Seal) */}
           <Link to={isAdmin ? "/admin" : "/"} className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-[#8b4513] text-[#ffc29f] flex items-center justify-center font-headline font-extrabold text-xl shadow-warm-sm group-hover:scale-105 transition-transform">
-              🥖
+            <div className="relative w-10 h-10 rounded-full border-2 border-[#b8860b] bg-[#fffbf2] flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform flex-shrink-0">
+              <span className="text-[#8b5a2b] font-serif font-black text-xs tracking-tighter">KA</span>
+              <div className="absolute -bottom-1 bg-[#8b5a2b] text-[6px] text-[#fff] font-bold px-1 rounded-full uppercase tracking-wider scale-75">
+                ESTD
+              </div>
             </div>
             <div>
-              <div className="font-headline font-extrabold text-lg text-[#6c2f00] tracking-tight leading-none flex items-center gap-1.5">
-                KrishnaArjun Bakers
+              <div className="font-serif font-black text-lg text-[#2c1810] tracking-wide uppercase leading-none">
+                KrishnaArjun
               </div>
-              <p className="text-[11px] text-[#855300] font-medium tracking-wide leading-tight">
-                Fresh Sangola Bakes & Sweets
-              </p>
+              <div className="text-[9px] font-extrabold tracking-[0.25em] text-[#8b5a2b] uppercase leading-tight mt-0.5">
+                BAKERS
+              </div>
+              <div className="text-[7px] font-bold tracking-widest text-[#a07855] uppercase">
+                DILLARS OF CHAKOTE BRAND
+              </div>
             </div>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1.5 text-xs font-bold">
             {isAdmin ? (
               <>
                 <Link
                   to="/admin"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  className={`px-3 py-2 rounded-lg transition-colors ${
                     location.pathname === '/admin' ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
@@ -138,7 +144,7 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   to="/admin/orders"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  className={`px-3 py-2 rounded-lg transition-colors ${
                     location.pathname.startsWith('/admin/orders') ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
@@ -146,7 +152,7 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   to="/admin/products"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  className={`px-3 py-2 rounded-lg transition-colors ${
                     location.pathname.startsWith('/admin/products') ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
@@ -154,7 +160,7 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   to="/admin/inventory"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  className={`px-3 py-2 rounded-lg transition-colors ${
                     location.pathname.startsWith('/admin/inventory') ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
@@ -162,15 +168,15 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   to="/admin/calendar"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  className={`px-3 py-2 rounded-lg transition-colors ${
                     location.pathname.startsWith('/admin/calendar') ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
-                  Baking Calendar
+                  Calendar
                 </Link>
                 <Link
                   to="/admin/bulk-orders"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  className={`px-3 py-2 rounded-lg transition-colors ${
                     location.pathname.startsWith('/admin/bulk-orders') ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
@@ -178,7 +184,7 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   to="/admin/reports"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  className={`px-3 py-2 rounded-lg transition-colors ${
                     location.pathname.startsWith('/admin/reports') ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
@@ -186,7 +192,7 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   to="/admin/team"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  className={`px-3 py-2 rounded-lg transition-colors ${
                     location.pathname.startsWith('/admin/team') ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
@@ -197,53 +203,48 @@ export const Navbar = () => {
               <>
                 <Link
                   to="/"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                    location.pathname === '/' ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
+                  className={`px-3 py-2 rounded-lg transition-colors ${
+                    location.pathname === '/' ? 'text-[#8b5a2b] border-b-2 border-[#b8860b]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
                   Home
                 </Link>
                 <Link
-                  to="/home"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                    location.pathname === '/home' ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
+                  to="/products"
+                  className={`px-3 py-2 rounded-lg transition-colors ${
+                    location.pathname === '/products' ? 'text-[#8b5a2b] border-b-2 border-[#b8860b]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
-                  Daily Order
+                  Products
                 </Link>
                 <Link
-                  to="/products"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                    location.pathname === '/products' ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
+                  to="/home"
+                  className={`px-3 py-2 rounded-lg transition-colors ${
+                    location.pathname === '/home' ? 'text-[#8b5a2b] border-b-2 border-[#b8860b]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
-                  Bakery Catalog
+                  Order Now
                 </Link>
                 <Link
                   to="/bulk-orders"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1 ${
-                    location.pathname === '/bulk-orders' ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
+                  className={`px-3 py-2 rounded-lg transition-colors ${
+                    location.pathname === '/bulk-orders' ? 'text-[#8b5a2b] border-b-2 border-[#b8860b]' : 'text-gray-700 hover:bg-[#f6f3f2]'
                   }`}
                 >
-                  <Sparkles className="w-4 h-4 text-[#fea619]" />
-                  Festival & Bulk
+                  Bulk Orders
                 </Link>
-                <Link
-                  to="/orders"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                    location.pathname.startsWith('/orders') ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
-                  }`}
+                <a
+                  href="/#about"
+                  className="px-3 py-2 rounded-lg text-gray-700 hover:bg-[#f6f3f2] transition-colors"
                 >
-                  My Orders
-                </Link>
-                <Link
-                  to="/bills"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                    location.pathname.startsWith('/bills') ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
-                  }`}
+                  About Us
+                </a>
+                <a
+                  href="/#contact"
+                  className="px-3 py-2 rounded-lg text-gray-700 hover:bg-[#f6f3f2] transition-colors"
                 >
-                  Digital Bills
-                </Link>
+                  Contact
+                </a>
               </>
             )}
           </nav>
