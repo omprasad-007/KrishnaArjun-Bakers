@@ -30,6 +30,7 @@ import AdminCalendar from './pages/admin/AdminCalendar';
 import AdminCustomers from './pages/admin/AdminCustomers';
 import AdminChat from './pages/admin/AdminChat';
 import AdminReports from './pages/admin/AdminReports';
+import AdminTeam from './pages/admin/AdminTeam';
 
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
@@ -113,6 +114,7 @@ const AppLayout = () => {
             <Route path="/admin/customers" element={<AdminRoute><AdminCustomers /></AdminRoute>} />
             <Route path="/admin/chat" element={<AdminRoute><AdminChat /></AdminRoute>} />
             <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+            <Route path="/admin/team" element={<AdminRoute><AdminTeam /></AdminRoute>} />
 
             {/* Catch-all fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -23,6 +23,27 @@ class ApiBridge {
     return await firebaseService.updateUserProfile(uid, data);
   }
 
+  // --- ADMIN TEAM & ROLES ---
+  subscribeToAdmins(callback) {
+    return firebaseService.subscribeToAdmins(callback);
+  }
+
+  async getAdmins() {
+    return await firebaseService.getAdmins();
+  }
+
+  async getAllUsers() {
+    return await firebaseService.getAllUsers();
+  }
+
+  async promoteToAdmin(userId) {
+    return await firebaseService.promoteToAdmin(userId);
+  }
+
+  async demoteAdmin(userId) {
+    return await firebaseService.demoteAdmin(userId);
+  }
+
   // --- PRODUCTS ---
   subscribeToProducts(callback) {
     return firebaseService.subscribeToProducts(callback);

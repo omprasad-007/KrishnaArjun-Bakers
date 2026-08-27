@@ -103,6 +103,37 @@ class FirebaseBakeryService {
     return this.getUserProfile(uid);
   }
 
+  // --- ADMIN TEAM & USER ROLES (Admin only) ---
+  subscribeToAdmins(callback) {
+    const q = query(collection(db, 'users'), where('role', '==', 'ADMIN'));
+    return onSnapshot(q, (snapshot) => {
+      const admins = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      callback(admins);
+    });
+  }
+
+  async getAdmins() {
+    const q = query(collection(db, 'users'), where('role', '==', 'ADMIN'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  }
+
+  async getAllUsers() {
+    const q = query(collection(db, 'users'), orderBy('created_at', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  }
+
+  async promoteToAdmin(userId) {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { role: 'ADMIN', updated_at: new Date().toISOString() });
+  }
+
+  async demoteAdmin(userId) {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { role: 'CUSTOMER', updated_at: new Date().toISOString() });
+  }
+
   // --- PRODUCTS (Real-time & Operations) ---
   subscribeToProducts(callback) {
     const q = query(collection(db, 'products'), orderBy('category'));

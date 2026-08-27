@@ -184,6 +184,14 @@ export const Navbar = () => {
                 >
                   Reports
                 </Link>
+                <Link
+                  to="/admin/team"
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                    location.pathname.startsWith('/admin/team') ? 'bg-[#ffdbc9] text-[#6c2f00]' : 'text-gray-700 hover:bg-[#f6f3f2]'
+                  }`}
+                >
+                  Team
+                </Link>
               </>
             ) : (
               <>

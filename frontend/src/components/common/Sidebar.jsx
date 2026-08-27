@@ -31,6 +31,7 @@ export const Sidebar = () => {
     { to: '/admin/customers', icon: Users, label: 'Customer CRM' },
     { to: '/admin/chat', icon: MessageSquare, label: 'Live Customer Chat' },
     { to: '/admin/reports', icon: BarChart3, label: 'Sales & Analytics' },
+    { to: '/admin/team', icon: ShieldCheck, label: 'Admin Team & Roles' },
   ];
 
   return (
