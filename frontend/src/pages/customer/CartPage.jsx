@@ -340,7 +340,7 @@ export const CartPage = () => {
                   <span>Login Required to Place Order</span>
                 </div>
                 <p className="text-[11px] text-gray-600">
-                  Please log in with your phone number to confirm your order and track baking progress.
+                  Please sign in with your account to confirm your order and track live baking progress.
                 </p>
                 <div className="flex items-center gap-2 pt-1">
                   <Link
