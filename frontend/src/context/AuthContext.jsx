@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import api from '../services/api';
@@ -6,7 +6,7 @@ import { useToast } from './ToastContext';
 
 const defaultAuthValue = {
   user: null,
-  loading: false,
+  loading: true,
   isAdmin: false,
   isCustomer: false,
   login: async () => {},
@@ -26,8 +26,9 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const profileUnsubRef = useRef(null);
 
   useEffect(() => {
     // One-time catalog initialization check
@@ -37,7 +38,13 @@ export const AuthProvider = ({ children }) => {
         .catch(() => {});
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Clean up any previous profile listener
+      if (profileUnsubRef.current) {
+        profileUnsubRef.current();
+        profileUnsubRef.current = null;
+      }
+
       if (firebaseUser) {
         // Fast optimistic sync from cache or basic profile
         const cached = localStorage.getItem('ka_firebase_user');
@@ -47,20 +54,30 @@ export const AuthProvider = ({ children }) => {
             name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
             phone: '',
             email: firebaseUser.email,
-            role: firebaseUser.email?.toLowerCase().includes('admin') ? 'ADMIN' : 'CUSTOMER',
+            role: 'CUSTOMER',
             village: 'Sangola',
           };
           setUser(basicUser);
           localStorage.setItem('ka_firebase_user', JSON.stringify(basicUser));
         }
 
-        // Background profile sync
-        api.getMe(firebaseUser.uid).then((profile) => {
-          if (profile) {
-            setUser(profile);
-            localStorage.setItem('ka_firebase_user', JSON.stringify(profile));
-          }
-        }).catch(() => {});
+        // Setup real-time listener for Firestore user profile and role updates
+        try {
+          profileUnsubRef.current = api.subscribeToUserProfile(firebaseUser.uid, (profile) => {
+            if (profile) {
+              setUser(profile);
+              localStorage.setItem('ka_firebase_user', JSON.stringify(profile));
+            }
+          });
+        } catch (e) {
+          // Fallback to one-time fetch if subscription fails
+          api.getMe(firebaseUser.uid).then((profile) => {
+            if (profile) {
+              setUser(profile);
+              localStorage.setItem('ka_firebase_user', JSON.stringify(profile));
+            }
+          }).catch(() => {});
+        }
       } else {
         localStorage.removeItem('ka_firebase_user');
         setUser(null);
@@ -68,7 +85,12 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (profileUnsubRef.current) {
+        profileUnsubRef.current();
+      }
+    };
   }, []);
 
   const login = async (email, password) => {
@@ -76,7 +98,7 @@ export const AuthProvider = ({ children }) => {
       const profile = await api.login(email, password);
       setUser(profile);
       localStorage.setItem('ka_firebase_user', JSON.stringify(profile));
-      toast.success(`Welcome back, ${profile.name || 'Customer'}!`);
+      toast.success(`Welcome back, ${profile.name || 'User'}!`);
       return profile;
     } catch (err) {
       toast.error(err.message || 'Login failed. Please check your credentials.');
@@ -99,6 +121,10 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      if (profileUnsubRef.current) {
+        profileUnsubRef.current();
+        profileUnsubRef.current = null;
+      }
       await api.logout();
       setUser(null);
       localStorage.removeItem('ka_firebase_user');
@@ -122,11 +148,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const isRoleAdmin = Boolean(
+    user?.role &&
+    (user.role.toUpperCase() === 'ADMIN' || user.role.toUpperCase() === 'OWNER')
+  );
+
   const value = {
     user,
     loading,
-    isAdmin: user?.role === 'ADMIN',
-    isCustomer: user?.role === 'CUSTOMER',
+    isAdmin: isRoleAdmin,
+    isCustomer: !isRoleAdmin,
     login,
     register,
     logout,

@@ -51,20 +51,20 @@ class FirebaseBakeryService {
       const fbUser = userCredential.user;
       const uid = fbUser.uid;
 
-      // Fast optimistic profile
+      // Base profile
       let profile = {
         id: uid,
         email: fbUser.email,
         name: fbUser.displayName || fbUser.email.split('@')[0],
         phone: '',
-        role: cleanEmail.toLowerCase().includes('admin') ? 'ADMIN' : 'CUSTOMER',
+        role: 'CUSTOMER',
         village: 'Sangola',
       };
 
-      // Quick Firestore document fetch (with fast timeout fallback to prevent blocking)
+      // Fetch Firestore document with actual role assigned in DB
       try {
         const userDocPromise = getDoc(doc(db, 'users', uid));
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500));
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500));
         const userDoc = await Promise.race([userDocPromise, timeoutPromise]);
         if (userDoc.exists()) {
           profile = { id: uid, ...userDoc.data() };
@@ -72,7 +72,7 @@ class FirebaseBakeryService {
           setDoc(doc(db, 'users', uid), profile).catch(() => {});
         }
       } catch {
-        // Use fast fallback profile immediately
+        // Fallback to local profile
       }
 
       return profile;
@@ -91,12 +91,13 @@ class FirebaseBakeryService {
     const userCredential = await createUserWithEmailAndPassword(auth, email, userData.password);
     const uid = userCredential.user.uid;
 
+    // All public signups are assigned CUSTOMER role by default
     const profile = {
       id: uid,
       name: userData.name,
       phone: userData.phone || '',
       email: email,
-      role: userData.role || (email.toLowerCase().includes('admin') ? 'ADMIN' : 'CUSTOMER'),
+      role: 'CUSTOMER',
       address: userData.address || '',
       village: userData.village || 'Sangola',
       taluka: userData.taluka || 'Sangola',
@@ -111,6 +112,18 @@ class FirebaseBakeryService {
 
   async logout() {
     await signOut(auth);
+  }
+
+  subscribeToUserProfile(uid, callback) {
+    if (!uid) return () => {};
+    const userDocRef = doc(db, 'users', uid);
+    return onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        callback({ id: uid, ...docSnap.data() });
+      }
+    }, (err) => {
+      console.warn('Profile subscription warning:', err);
+    });
   }
 
   async getUserProfile(uid) {

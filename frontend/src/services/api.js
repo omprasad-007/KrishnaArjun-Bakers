@@ -23,6 +23,10 @@ class ApiBridge {
     return await firebaseService.updateUserProfile(uid, data);
   }
 
+  subscribeToUserProfile(uid, callback) {
+    return firebaseService.subscribeToUserProfile(uid, callback);
+  }
+
   // --- ADMIN TEAM & ROLES ---
   subscribeToAdmins(callback) {
     return firebaseService.subscribeToAdmins(callback);
