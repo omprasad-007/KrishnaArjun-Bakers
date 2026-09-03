@@ -207,6 +207,21 @@ export const AdminProducts = () => {
     }
   };
 
+  const handleSeedSampleProducts = async () => {
+    try {
+      setLoading(true);
+      toast.info("Populating fresh bakery products into database...");
+      await api.seedInitialBakeryData();
+      localStorage.setItem('ka_catalog_initialized', 'true');
+      toast.success("Sample bakery products populated successfully!");
+      await loadProducts();
+    } catch (err) {
+      toast.error(err?.message || "Failed to populate products. Please check Firestore.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredProducts = products.filter((p) => {
     const matchesCat = selectedCategory === 'ALL' || p.category === selectedCategory;
     const matchesSearch =
@@ -245,13 +260,21 @@ export const AdminProducts = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={loadProducts}
             className="p-2.5 rounded-2xl border border-[#dac2b6]/60 bg-white hover:bg-[#f6f3f2] text-gray-600 transition-colors"
             title="Refresh"
           >
             <RefreshCw className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleSeedSampleProducts}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl border border-[#fea619] bg-[#fff5ee] hover:bg-[#ffdbc9] text-[#6c2f00] font-headline font-bold text-xs shadow-warm-sm transition-all"
+            title="Load initial sample bakery products into Firestore"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#fea619]" />
+            <span>Load Sample Items</span>
           </button>
           <button
             onClick={handleOpenCreate}
